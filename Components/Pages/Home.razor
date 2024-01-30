@@ -1,0 +1,47 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Mvc.Rendering
+@inject DataService data
+
+<EditForm Model="model" OnValidSubmit="Submit">
+	<InputSelect @bind-Value="model.SelectedCityId" @bind-Value:after="OnSelectedCityChanged">
+		@foreach (var city in cities) {
+			<option value="@city.CityId">@city.Name</option>
+		}
+	</InputSelect>
+
+	<MultiSelect @ref="multiSelect" SelectListDemo="model.AreaSelectList" />
+
+	<button type="submit">שמור</button>
+</EditForm>
+
+@code {
+	class Model
+	{
+		public int SelectedCityId { get; set; }
+		public int SelectedAreaId { get; set; }
+		public MultiSelectList AreaSelectList { get; set; } = new MultiSelectList(new int[] { });
+	}
+
+	private Model model = new Model();
+	private List<City> cities = new List<City>();
+	private List<Area> areas = new List<Area>();
+	private MultiSelect multiSelect = default!;
+
+	protected override void OnInitialized()
+	{
+		cities = data.GetCities();
+	}
+
+	private void OnSelectedCityChanged()
+	{
+		areas = data.GetAreas(model.SelectedCityId);
+		model.AreaSelectList = new MultiSelectList(areas, "AreaId", "Name", areas.Select(a => a.AreaId));
+		multiSelect.Reset();
+	}
+
+	private void Submit()
+	{
+		Console.WriteLine($"City: {model.SelectedCityId}");
+		Console.WriteLine($"Areas: {string.Join(',', model.AreaSelectList.Where(a => a.Selected).Select(a => a.Value))}");
+	}
+}

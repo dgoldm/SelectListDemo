@@ -1,0 +1,24 @@
+﻿<div class="dropdown">
+	<div class="select @getSelectionDisplayClass()">
+		@SelectionDisplay()
+	</div>
+	@if (SelectListDemo.Any()) {
+		<div class="dropdown-content">
+			<div>
+				<label for="selectAll" class="select-all">
+					<input type="checkbox" checked=@selectAll @onchange="(()=> toggleAll())" />
+					הכל
+				</label>
+			</div>
+			@foreach (var item in SelectListDemo) {
+				<div>
+					<label>
+						<input type="checkbox" checked=@item.Selected @onchange="(()=> toggleItem(item.Value))" />
+						@item.Text
+					</label>
+				</div>
+			}
+		</div>
+	}
+</div>
+
