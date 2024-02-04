@@ -2,18 +2,18 @@
 	<div class="select @getSelectionDisplayClass()">
 		@SelectionDisplay()
 	</div>
-	@if (SelectListDemo.Any()) {
+	@if (SelectList.Any()) {
 		<div class="dropdown-content">
 			<div>
 				<label for="selectAll" class="select-all">
-					<input type="checkbox" checked=@selectAll @onchange="(()=> toggleAll())" />
+					<input type="checkbox" @bind="selectAll" @bind:after="toggleAll" />
 					הכל
 				</label>
 			</div>
-			@foreach (var item in SelectListDemo) {
+			@foreach (var item in SelectList) {
 				<div>
 					<label>
-						<input type="checkbox" checked=@item.Selected @onchange="(()=> toggleItem(item.Value))" />
+						<input type="checkbox" @bind="item.Selected" @bind:after="(()=> toggleItem(item.Value))" />
 						@item.Text
 					</label>
 				</div>

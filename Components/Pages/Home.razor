@@ -1,25 +1,47 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using System.ComponentModel.DataAnnotations
 @inject DataService data
 
 <EditForm Model="model" OnValidSubmit="Submit">
-	<InputSelect @bind-Value="model.SelectedCityId" @bind-Value:after="OnSelectedCityChanged">
-		@foreach (var city in cities) {
-			<option value="@city.CityId">@city.Name</option>
-		}
-	</InputSelect>
+	<div class="form-contents">
+		<DataAnnotationsValidator />
+		<label>
+			עיר
+			<InputSelect @bind-Value="model.SelectedCityId" @bind-Value:after="OnSelectedCityChanged">
+				@foreach (var city in cities) {
+					<option value="@city.CityId">@city.Name</option>
+				}
+			</InputSelect>
+			<ValidationMessage For="() => model.SelectedCityId" />
+		</label>
 
-	<MultiSelect @ref="multiSelect" SelectListDemo="model.AreaSelectList" />
+		<div class="areas">
+			אזורים
+			<MultiSelect @ref="multiSelect" SelectList="model.AreaSelectList" />
+		</div>
 
-	<button type="submit">שמור</button>
+		<label>
+			כתובת אימייל
+			<InputText @bind-Value="@model.EmailAddress" />
+		</label>
+		<ValidationMessage For="() => model.EmailAddress" />
+
+		<div class="submit">
+			<button type="submit">שמור</button>
+		</div>
+	</div>
 </EditForm>
 
 @code {
 	class Model
 	{
+		[Range(1, 99, ErrorMessage = "יש לבחור עיר")]
 		public int SelectedCityId { get; set; }
-		public int SelectedAreaId { get; set; }
 		public MultiSelectList AreaSelectList { get; set; } = new MultiSelectList(new int[] { });
+		[Required(ErrorMessage = "יש להקליד כתובת אימייל")]
+		[EmailAddress(ErrorMessage = "כתובת אימייל לא תקינה")]
+		public string EmailAddress { get; set; } = default!;
 	}
 
 	private Model model = new Model();
@@ -36,7 +58,6 @@
 	{
 		areas = data.GetAreas(model.SelectedCityId);
 		model.AreaSelectList = new MultiSelectList(areas, "AreaId", "Name", areas.Select(a => a.AreaId));
-		multiSelect.Reset();
 	}
 
 	private void Submit()

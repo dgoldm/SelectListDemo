@@ -6,22 +6,28 @@ namespace SelectListDemo.Components
     public partial class MultiSelect : ComponentBase
     {
         [Parameter]
-        public MultiSelectList SelectListDemo { get; set; } = default!;
+        public MultiSelectList SelectList { get; set; } = default!;
 
-        private bool selectAll = true;
+        private bool selectAll = false;
+
+		protected override void OnParametersSet()
+		{
+			base.OnParametersSet();
+			Reset();
+		}
 
         public void Reset()
         {
-            selectAll = true;
-            foreach (var item in SelectListDemo)
-                item.Selected = true;
+			selectAll = false;
+            foreach (var item in SelectList)
+                item.Selected = false;
         }
 
         private string getSelectionDisplayClass()
         {
             const string displayClass = "select-multi";
 
-            if (selectAll || SelectListDemo.Where(x => x.Selected).Count() <= 1)
+            if (selectAll || SelectList.Where(x => x.Selected).Count() <= 1)
                 return ("");
 
             return displayClass;
@@ -29,7 +35,7 @@ namespace SelectListDemo.Components
 
         private string SelectionDisplay()
         {
-            if (!SelectListDemo.Any())
+            if (!SelectList.Any())
                 return "";
 
             if (selectAll)
@@ -37,7 +43,7 @@ namespace SelectListDemo.Components
 
             var s = "";
 
-            var selectedItems = SelectListDemo.Where(x => x.Selected);
+            var selectedItems = SelectList.Where(x => x.Selected);
 
             if (selectedItems.Count() > 0)
             {
@@ -52,26 +58,19 @@ namespace SelectListDemo.Components
 
         private void toggleItem(string itemValue)
         {
-            var currentItem = SelectListDemo.Single(x => x.Value == itemValue);
-            currentItem.Selected = !currentItem.Selected;
-
-            var countSelected = SelectListDemo.Where(x => x.Selected).Count();
-            var countAll = SelectListDemo.Count();
+            var countSelected = SelectList.Where(x => x.Selected).Count();
+            var countAll = SelectList.Count();
 
             selectAll = countSelected == countAll;
-
-            StateHasChanged();
         }
 
         private void toggleAll()
         {
-            selectAll = !selectAll;
-
             if (selectAll)
-                foreach (var item in SelectListDemo)
+                foreach (var item in SelectList)
                     item.Selected = true;
             else
-                foreach (var item in SelectListDemo)
+                foreach (var item in SelectList)
                     item.Selected = false;
 
             StateHasChanged();
