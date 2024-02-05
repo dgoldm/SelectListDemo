@@ -9,10 +9,14 @@ namespace SelectListDemo.Components
         public MultiSelectList SelectList { get; set; } = default!;
 
         private bool selectAll = false;
+        private static List<string> currentSelection = new();
 
 		protected override void OnParametersSet()
 		{
 			base.OnParametersSet();
+            //prevent resetting the selection when the SelectList hasn't changed
+            if (currentSelection.SequenceEqual(SelectList.Where(x => x.Selected).Select(x => x.Value)))
+                return;
 			Reset();
 		}
 
@@ -58,13 +62,14 @@ namespace SelectListDemo.Components
 
         private void toggleItem(string itemValue)
         {
-            var countSelected = SelectList.Where(x => x.Selected).Count();
+            SaveCurrentSelection();
+			var countSelected = currentSelection.Count();
             var countAll = SelectList.Count();
 
             selectAll = countSelected == countAll;
-        }
+		}
 
-        private void toggleAll()
+		private void toggleAll()
         {
             if (selectAll)
                 foreach (var item in SelectList)
@@ -72,9 +77,12 @@ namespace SelectListDemo.Components
             else
                 foreach (var item in SelectList)
                     item.Selected = false;
+			SaveCurrentSelection();
+		}
 
-            StateHasChanged();
-        }
-
+		private void SaveCurrentSelection()
+        {
+			currentSelection = SelectList.Where(x => x.Selected).Select(x => x.Value).ToList();
+		}
     }
 }

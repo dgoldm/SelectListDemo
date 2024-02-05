@@ -1,9 +1,10 @@
 ﻿@page "/"
+@implements IDisposable
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using System.ComponentModel.DataAnnotations
 @inject DataService data
 
-<EditForm Model="model" OnValidSubmit="Submit">
+<EditForm EditContext="editContext" OnValidSubmit="Submit">
 	<div class="form-contents">
 		<DataAnnotationsValidator />
 		<label>
@@ -20,6 +21,7 @@
 			אזורים
 			<MultiSelect @ref="multiSelect" SelectList="model.AreaSelectList" />
 		</div>
+		<ValidationMessage For="() => model.AreaSelectList" />
 
 		<label>
 			כתובת אימייל
@@ -34,7 +36,7 @@
 </EditForm>
 
 @code {
-	class Model
+	public class Model
 	{
 		[Range(1, 99, ErrorMessage = "יש לבחור עיר")]
 		public int SelectedCityId { get; set; }
@@ -44,13 +46,19 @@
 		public string EmailAddress { get; set; } = default!;
 	}
 
-	private Model model = new Model();
+	private Model model = new();
+	private EditContext? editContext = default!;
+	private ValidationMessageStore? messageStore;
 	private List<City> cities = new List<City>();
 	private List<Area> areas = new List<Area>();
 	private MultiSelect multiSelect = default!;
 
 	protected override void OnInitialized()
 	{
+		editContext = new(model);
+		editContext.OnValidationRequested += ValidateForm;
+		messageStore = new(editContext);
+
 		cities = data.GetCities();
 	}
 
@@ -60,9 +68,24 @@
 		model.AreaSelectList = new MultiSelectList(areas, "AreaId", "Name", areas.Select(a => a.AreaId));
 	}
 
+	private void ValidateForm(object? sender,
+				ValidationRequestedEventArgs args)
+	{
+		messageStore?.Clear();
+		if (!model.AreaSelectList.Any()) {
+			messageStore?.Add(() => model.AreaSelectList, "יש לבחור לפחות איזור אחד");
+		}
+	}
 	private void Submit()
 	{
 		Console.WriteLine($"City: {model.SelectedCityId}");
 		Console.WriteLine($"Areas: {string.Join(',', model.AreaSelectList.Where(a => a.Selected).Select(a => a.Value))}");
+	}
+
+	public void Dispose()
+	{
+		if (editContext is not null) {
+			editContext.OnValidationRequested -= ValidateForm;
+		}
 	}
 }
